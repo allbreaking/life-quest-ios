@@ -6,8 +6,8 @@
 //  SETUP (one-time in Xcode):
 //  1. File → New → Target → Widget Extension (watchOS platform)
 //     Name: "lifequest-ios Watch Widget", uncheck "Include Configuration App Intent"
-//  2. Watch App target → Signing & Capabilities → + App Groups → "group.com.lifequest.shared"
-//  3. Widget target   → Signing & Capabilities → + App Groups → "group.com.lifequest.shared"
+//  2. Watch App target → Signing & Capabilities → + App Groups → "group.com.xx.lifequest-ios.shared"
+//  3. Widget target   → Signing & Capabilities → + App Groups → "group.com.xx.lifequest-ios.shared"
 //  4. Add Models.swift (from Watch App) to the Widget target via File Inspector → Target Membership
 //
 
@@ -16,7 +16,7 @@ import SwiftUI
 
 // MARK: - Shared App Group key (must match RoutineStore.swift)
 
-private let kAppGroupId  = "group.com.lifequest.shared"
+private let kAppGroupId  = "group.com.xx.lifequest-ios.shared"
 private let kAppStateKey = "LQAppState"
 
 // MARK: - Timeline Entry
@@ -36,9 +36,19 @@ struct ActiveTaskEntry: TimelineEntry {
         progress: "1/3"
     )
 
+    /// All tasks completed today
     static let allDone = ActiveTaskEntry(
         date: Date(),
         taskName: nil,
+        locationName: nil,
+        subtaskName: nil,
+        progress: nil
+    )
+
+    /// Could not read data from App Group (not configured or empty)
+    static let noData = ActiveTaskEntry(
+        date: Date(),
+        taskName: "—",
         locationName: nil,
         subtaskName: nil,
         progress: nil
@@ -70,7 +80,8 @@ struct ActiveTaskProvider: TimelineProvider {
             let data  = defaults.data(forKey: kAppStateKey),
             let state = try? JSONDecoder().decode(AppState.self, from: data)
         else {
-            return .allDone
+            // App Group not configured or no data written yet — show placeholder dash
+            return .noData
         }
 
         guard let routine = state.routines.todaysSorted().first(where: { !$0.completionStatus }) else {
@@ -97,6 +108,14 @@ struct ActiveTaskProvider: TimelineProvider {
     }
 }
 
+// MARK: - Brand Colors
+
+private extension Color {
+    static let espresso  = Color(red: 0.227, green: 0.180, blue: 0.149)  // #3A2E26 — main title
+    static let walnut    = Color(red: 0.361, green: 0.306, blue: 0.251)  // #5C4E40 — body
+    static let driftwood = Color(red: 0.620, green: 0.557, blue: 0.494)  // #9E8E7E — secondary/label
+}
+
 // MARK: - Complication Views
 
 struct ActiveTaskComplicationView: View {
@@ -116,20 +135,31 @@ struct ActiveTaskComplicationView: View {
 
     @ViewBuilder
     private var rectangularView: some View {
-        if let name = entry.taskName {
+        if entry.taskName == nil {
+            // All tasks completed
+            HStack {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                Text("All Done!")
+                    .font(.headline)
+                    .foregroundStyle(Color.espresso)
+            }
+        } else if let name = entry.taskName, name != "—" {
             VStack(alignment: .leading, spacing: 2) {
                 // Row 1: task name + progress
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Image(systemName: "circle")
                         .font(.caption2)
+                        .foregroundStyle(Color.walnut)
                     Text(name)
                         .font(.headline)
+                        .foregroundStyle(Color.espresso)
                         .lineLimit(1)
                     if let p = entry.progress {
                         Spacer(minLength: 4)
                         Text(p)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.driftwood)
                     }
                 }
                 // Row 2: current subtask
@@ -137,10 +167,10 @@ struct ActiveTaskComplicationView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "arrow.right")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.driftwood)
                         Text(sub)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.walnut)
                             .lineLimit(1)
                     }
                 }
@@ -149,20 +179,23 @@ struct ActiveTaskComplicationView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "mappin")
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.driftwood)
                         Text(loc)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(Color.driftwood)
                             .lineLimit(1)
                     }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         } else {
+            // No data from App Group yet
             HStack {
-                Image(systemName: "checkmark.circle.fill")
-                Text("All Done!")
-                    .font(.headline)
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(Color.driftwood)
+                Text("Open app to sync")
+                    .font(.caption)
+                    .foregroundStyle(Color.driftwood)
             }
         }
     }
@@ -171,14 +204,20 @@ struct ActiveTaskComplicationView: View {
 
     @ViewBuilder
     private var inlineView: some View {
-        if let name = entry.taskName {
+        if let name = entry.taskName, name != "—" {
             if let sub = entry.subtaskName {
                 Label("\(name): \(sub)", systemImage: "circle")
+                    .foregroundStyle(Color.espresso)
             } else {
                 Label(name, systemImage: "circle")
+                    .foregroundStyle(Color.espresso)
             }
-        } else {
+        } else if entry.taskName == nil {
             Label("All Done!", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(Color.espresso)
+        } else {
+            Label("Open app to sync", systemImage: "arrow.triangle.2.circlepath")
+                .foregroundStyle(Color.driftwood)
         }
     }
 
@@ -186,18 +225,25 @@ struct ActiveTaskComplicationView: View {
 
     @ViewBuilder
     private var circularView: some View {
-        if let name = entry.taskName {
+        if let name = entry.taskName, name != "—" {
             VStack(spacing: 1) {
                 Image(systemName: "circle")
                     .font(.body)
+                    .foregroundStyle(Color.walnut)
                 Text(name)
                     .font(.system(size: 8, weight: .medium))
+                    .foregroundStyle(Color.espresso)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
             }
-        } else {
+        } else if entry.taskName == nil {
             Image(systemName: "checkmark.circle.fill")
                 .font(.title2)
+                .foregroundStyle(.green)
+        } else {
+            Image(systemName: "arrow.triangle.2.circlepath")
+                .font(.title2)
+                .foregroundStyle(Color.driftwood)
         }
     }
 }
@@ -210,7 +256,10 @@ struct LifeQuestActiveTaskWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: ActiveTaskProvider()) { entry in
             ActiveTaskComplicationView(entry: entry)
-                .containerBackground(.background, for: .widget)
+                .containerBackground(
+                    Color(red: 0.980, green: 0.973, blue: 0.961),
+                    for: .widget
+                )
         }
         .configurationDisplayName("Active Task")
         .description("Shows your current active routine and subtask.")

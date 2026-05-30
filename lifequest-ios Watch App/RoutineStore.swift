@@ -9,7 +9,7 @@ import WidgetKit
 
 // App Group must be enabled in both the Watch App and Watch Widget targets in Xcode
 // (Signing & Capabilities → + App Groups → add this identifier)
-let kAppGroupId  = "group.com.lifequest.shared"
+let kAppGroupId  = "group.com.xx.lifequest-ios.shared"
 private let kAppStateKey = "LQAppState"
 
 private var sharedDefaults: UserDefaults {
