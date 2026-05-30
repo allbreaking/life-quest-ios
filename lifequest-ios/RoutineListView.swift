@@ -52,10 +52,25 @@ struct RoutineListView: View {
         return "lifequest-routines-\(formatter.string(from: Date()))"
     }
 
+    /// Today's routines: incomplete first (sorted by time), complete last.
+    /// Non-today routines appended at the end.
+    private var displayedRoutines: [Routine] {
+        let todayIncomplete = store.todaysRoutines.filter { !$0.completionStatus }
+        let todayComplete   = store.todaysRoutines.filter { $0.completionStatus }
+        let notToday = store.routines
+            .filter { !$0.isDueToday() }
+            .sorted { $0.createdAt < $1.createdAt }
+        return todayIncomplete + todayComplete + notToday
+    }
+
+    private var firstIncompleteId: UUID? {
+        store.todaysRoutines.first { !$0.completionStatus }?.id
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(store.routines) { routine in
+                ForEach(displayedRoutines) { routine in
                     routineRow(routine)
                 }
             }
@@ -159,12 +174,18 @@ struct RoutineListView: View {
         }
     }
 
+    // MARK: - Row Builder
+
     @ViewBuilder
     private func routineRow(_ routine: Routine) -> some View {
+        let isExpanded = routine.id == firstIncompleteId && !routine.subtasks.isEmpty
+
+        // Parent row
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(routine.name)
                     .font(.headline)
+                    .foregroundStyle(routine.completionStatus ? .secondary : .primary)
                 HStack(spacing: 8) {
                     if routine.hasScheduledTime {
                         Label(routine.scheduledTimeString, systemImage: "clock")
@@ -174,12 +195,16 @@ struct RoutineListView: View {
                     Text(routine.recurrence.displayName)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    if !routine.subtasks.isEmpty {
+                        Text("\(routine.completedSubtaskIndices.count)/\(routine.subtasks.count)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             Spacer()
             if routine.isDueToday() {
-                Image(systemName: routine.completionStatus ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(routine.completionStatus ? .green : .secondary)
+                completionButton(routine: routine)
             }
         }
         .contentShape(Rectangle())
@@ -195,6 +220,59 @@ struct RoutineListView: View {
                 Label("Delete", systemImage: "trash")
             }
         }
+
+        // Subtask rows (only for the first incomplete task)
+        if isExpanded {
+            ForEach(routine.subtasks.indices, id: \.self) { idx in
+                subtaskRow(
+                    title: routine.subtasks[idx],
+                    isCompleted: routine.completedSubtaskIndices.contains(idx),
+                    onToggle: {
+                        store.toggleSubtask(routineId: routine.id, subtaskIndex: idx)
+                        sessionManager.sendRoutinesToWatch()
+                    }
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func completionButton(routine: Routine) -> some View {
+        Button {
+            if routine.completionStatus {
+                // Un-complete: clear subtasks too
+                store.uncompleteRoutine(routineId: routine.id)
+            } else {
+                store.markComplete(routineId: routine.id)
+            }
+            sessionManager.sendRoutinesToWatch()
+        } label: {
+            Image(systemName: routine.completionStatus ? "checkmark.circle.fill" : "circle")
+                .foregroundStyle(routine.completionStatus ? .green : .secondary)
+                .font(.title2)
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func subtaskRow(title: String, isCompleted: Bool, onToggle: @escaping () -> Void) -> some View {
+        Button(action: onToggle) {
+            HStack(spacing: 10) {
+                // Indent indicator
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.2))
+                    .frame(width: 2)
+                    .padding(.leading, 8)
+                Image(systemName: isCompleted ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isCompleted ? .green : .secondary)
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(isCompleted ? .secondary : .primary)
+                    .strikethrough(isCompleted, color: .secondary)
+                Spacer()
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 

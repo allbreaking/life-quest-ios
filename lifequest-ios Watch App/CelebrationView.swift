@@ -34,7 +34,7 @@ struct CelebrationView: View {
                     .font(.largeTitle)
             }
         }
-        .navigationBarBackButtonHidden(true)
+        .navigationBarBackButtonHidden(false)
     }
 }
 

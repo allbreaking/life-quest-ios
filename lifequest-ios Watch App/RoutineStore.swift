@@ -75,6 +75,22 @@ final class RoutineStore {
         save()
     }
 
+    /// Toggle subtask completion; auto-completes or un-completes the parent routine accordingly.
+    func toggleSubtask(routineId: UUID, subtaskIndex: Int) {
+        guard let idx = routines.firstIndex(where: { $0.id == routineId }) else { return }
+        if routines[idx].completedSubtaskIndices.contains(subtaskIndex) {
+            routines[idx].completedSubtaskIndices.removeAll { $0 == subtaskIndex }
+            routines[idx].completionStatus = false
+        } else {
+            routines[idx].completedSubtaskIndices.append(subtaskIndex)
+            if routines[idx].allSubtasksCompleted {
+                routines[idx].completionStatus = true
+            }
+        }
+        routines[idx].updatedAt = Date()
+        save()
+    }
+
     // MARK: - Today's Routines
 
     var todaysRoutines: [Routine] {

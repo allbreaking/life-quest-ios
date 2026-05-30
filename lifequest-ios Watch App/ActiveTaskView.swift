@@ -31,9 +31,9 @@ struct ActiveTaskView: View {
     private var sessionManager: WatchSessionManager { WatchSessionManager.shared }
 
     let routineId: UUID
+    var onAllDone: (() -> Void)? = nil
 
     @State private var showingFireworks = false
-    @State private var navigateToCelebration = false
     @State private var isLongPressing = false
     @State private var longPressProgress: CGFloat = 0.0
 
@@ -48,16 +48,13 @@ struct ActiveTaskView: View {
 
     var body: some View {
         Group {
-            if navigateToCelebration {
-                CelebrationView()
-            } else if let routine = routine {
+            if let routine = routine {
                 mainContent(routine: routine)
             } else {
                 Text("Routine not found")
                     .foregroundStyle(Color.driftwood)
             }
         }
-        .navigationBarBackButtonHidden(navigateToCelebration)
     }
 
     @ViewBuilder
@@ -237,7 +234,7 @@ struct ActiveTaskView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             showingFireworks = false
             if store.allDoneToday {
-                navigateToCelebration = true
+                onAllDone?()
             } else {
                 dismiss()
             }
@@ -250,7 +247,7 @@ struct ActiveTaskView: View {
     let routine = Routine(name: "Morning Meditation", subtasks: ["Sit quietly", "Breathe deeply"])
     store.addRoutine(routine)
     return NavigationStack {
-        ActiveTaskView(routineId: routine.id)
+        ActiveTaskView(routineId: routine.id, onAllDone: {})
             .environment(store)
     }
 }
