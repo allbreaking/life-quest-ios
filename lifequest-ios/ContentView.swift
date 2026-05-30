@@ -1,24 +1,28 @@
+
 //
 //  ContentView.swift
 //  lifequest-ios
-//
-//  Created by Jayus X on 2026/5/26.
 //
 
 import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            RoutineListView()
+                .tabItem {
+                    Label("Routines", systemImage: "list.bullet.clipboard")
+                }
+
+            LocationLibraryView()
+                .tabItem {
+                    Label("Locations", systemImage: "mappin.and.ellipse")
+                }
         }
-        .padding()
     }
 }
 
 #Preview {
     ContentView()
+        .environment(RoutineStore())
 }
