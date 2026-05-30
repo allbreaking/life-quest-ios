@@ -54,9 +54,25 @@ struct ContentView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .markRoutineDoneFromNotification)) { notification in
-            if let routineId = notification.userInfo?["routineId"] as? UUID {
+            guard let routineId = notification.userInfo?["routineId"] as? UUID else { return }
+
+            if let routine = store.routines.first(where: { $0.id == routineId }),
+               let nextIdx = routine.nextSubtaskIndex {
+                // Has an incomplete subtask — mark it (auto-completes parent if last subtask)
+                store.toggleSubtask(routineId: routineId, subtaskIndex: nextIdx)
+            } else {
+                // No subtasks, or all subtasks already done — mark whole routine complete
                 store.markComplete(routineId: routineId)
             }
+
+            // Sync to phone and reschedule notifications for the new active routine
+            if let updated = store.routines.first(where: { $0.id == routineId }) {
+                WatchSessionManager.shared.sendCompletionUpdate(routine: updated)
+            }
+            NotificationManager.shared.rescheduleForActiveRoutine(store: store)
+
+            // Navigate: celebration if all done, otherwise jump to the new active task
+            resetToCurrentState()
         }
     }
 
