@@ -30,8 +30,13 @@ struct ActiveTaskView: View {
     @Environment(\.dismiss) private var dismiss
     private var sessionManager: WatchSessionManager { WatchSessionManager.shared }
 
-    let routineId: UUID
-    var onAllDone: (() -> Void)? = nil
+    @State private var routineId: UUID
+    let onAllDone: (() -> Void)?
+
+    init(routineId: UUID, onAllDone: (() -> Void)? = nil) {
+        _routineId = State(initialValue: routineId)
+        self.onAllDone = onAllDone
+    }
 
     @State private var showingFireworks = false
     @State private var isLongPressing = false
@@ -54,6 +59,10 @@ struct ActiveTaskView: View {
                 Text("Routine not found")
                     .foregroundStyle(Color.driftwood)
             }
+        }
+        .onChange(of: routineId) { _, _ in
+            isLongPressing = false
+            longPressProgress = 0
         }
     }
 
@@ -232,6 +241,8 @@ struct ActiveTaskView: View {
             showingFireworks = false
             if store.allDoneToday {
                 onAllDone?()
+            } else if let next = store.activeRoutine {
+                routineId = next.id  // Stay on this view, switch to next task
             } else {
                 dismiss()
             }
@@ -242,7 +253,9 @@ struct ActiveTaskView: View {
 #Preview {
     let store = RoutineStore()
     let routine = Routine(name: "Morning Meditation", subtasks: ["Sit quietly", "Breathe deeply"])
+    let routine2 = Routine(name: "Morning Meditation2", subtasks: ["Sit quietly", "Breathe deeply"])
     store.addRoutine(routine)
+    store.addRoutine(routine2)
     return NavigationStack {
         ActiveTaskView(routineId: routine.id, onAllDone: {})
             .environment(store)
