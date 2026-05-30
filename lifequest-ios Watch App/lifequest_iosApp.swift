@@ -29,6 +29,8 @@ struct lifequest_ios_Watch_AppApp: App {
                     if newPhase == .active {
                         store.performDailyResetIfNeeded()
                         NotificationManager.shared.rescheduleForActiveRoutine(store: store)
+                        // Push any completed/partial tasks to phone in case prior message was missed
+                        WatchSessionManager.shared.pushTodaysCompletionToPhone(store: store)
                     }
                 }
         }

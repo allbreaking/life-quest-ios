@@ -55,6 +55,17 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
         Task { @MainActor in self.requestSyncFromPhone() }
     }
 
+    /// Push completion state for all today's touched routines to phone.
+    /// Called on watch app active to ensure phone stays in sync even if a prior message was missed.
+    func pushTodaysCompletionToPhone(store: RoutineStore) {
+        let touched = store.todaysRoutines.filter {
+            $0.completionStatus || !$0.completedSubtaskIndices.isEmpty
+        }
+        for routine in touched {
+            sendCompletionUpdate(routine: routine)
+        }
+    }
+
     func requestSyncFromPhone() {
         let message: [String: Any] = ["type": "requestSync"]
         if WCSession.default.isReachable {

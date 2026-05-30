@@ -43,17 +43,19 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
 
     // MARK: - Schedule Notifications
 
+    private let maxNotificationCount = 12
+
     /// Schedule up to 12 repeat notifications for the active routine.
-    /// First notification fires at the routine's scheduled time (or immediately if overdue/no scheduled time),
-    /// then repeats every reminderIntervalMinutes.
+    /// - If the scheduled time is in the future: first notification fires AT that time.
+    /// - If the scheduled time has passed: align to the next interval boundary (never fires immediately).
+    /// - No scheduled time: first notification fires after one full interval.
     func scheduleNotifications(for routine: Routine) {
+        // Synchronous removal by constructing known identifiers — no async race condition.
         cancelAllNotifications(for: routine.id)
 
         let intervalSeconds = Double(routine.reminderIntervalMinutes) * 60.0
-        let maxCount = 12
         let now = Date()
 
-        // Determine when reminders should start
         let startDate: Date
         if let hour = routine.scheduledHour, let minute = routine.scheduledMinute {
             var comps = Calendar.current.dateComponents([.year, .month, .day], from: now)
@@ -61,16 +63,23 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             comps.minute = minute
             comps.second = 0
             let scheduled = Calendar.current.date(from: comps) ?? now
-            // Start at scheduled time; if already past, start from now
-            startDate = scheduled > now ? scheduled : now
+            if scheduled > now {
+                // Future: fire exactly at scheduled time
+                startDate = scheduled
+            } else {
+                // Past: advance to the next interval boundary from the scheduled time
+                let elapsed = now.timeIntervalSince(scheduled)
+                let intervalsElapsed = floor(elapsed / intervalSeconds)
+                startDate = scheduled.addingTimeInterval((intervalsElapsed + 1) * intervalSeconds)
+            }
         } else {
-            startDate = now
+            // No scheduled time: first reminder after one full interval
+            startDate = now.addingTimeInterval(intervalSeconds)
         }
 
-        for index in 0..<maxCount {
-            // index = 0 fires at startDate (the scheduled time itself), then every interval
+        for index in 0..<maxNotificationCount {
             let delay = startDate.timeIntervalSince(now) + Double(index) * intervalSeconds
-            let fireDelay = max(delay, 1.0) // at least 1 second in the future
+            guard delay > 0 else { continue }
 
             let content = UNMutableNotificationContent()
             content.title = routine.name
@@ -83,56 +92,25 @@ final class NotificationManager: NSObject, UNUserNotificationCenterDelegate {
             content.userInfo = ["routineId": routine.id.uuidString]
             content.sound = .default
 
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: fireDelay, repeats: false)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
             let identifier = "lq-routine-\(routine.id.uuidString)-\(index)"
             let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
             UNUserNotificationCenter.current().add(request) { _ in }
         }
     }
 
-    /// Schedule a single arrival notification for a future scheduled routine.
-    private func scheduleArrivalNotification(for routine: Routine, at date: Date) {
-        let content = UNMutableNotificationContent()
-        content.title = routine.name
-        content.body = routine.subtasks.first ?? "Time to start your routine!"
-        content.categoryIdentifier = categoryId
-        content.userInfo = ["routineId": routine.id.uuidString]
-        content.sound = .default
-
-        let delay = date.timeIntervalSince(Date())
-        guard delay > 0 else { return }
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: delay, repeats: false)
-        let identifier = "lq-arrival-\(routine.id.uuidString)"
-        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request) { _ in }
-    }
-
-    /// Cancel all pending notifications for a specific routine
+    /// Cancel all pending notifications for a specific routine.
+    /// Uses direct identifier construction — synchronous, no callback race condition.
     func cancelAllNotifications(for routineId: UUID) {
-        let idUUID = routineId.uuidString
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            let identifiers = requests
-                .filter {
-                    $0.identifier.hasPrefix("lq-routine-\(idUUID)-") ||
-                    $0.identifier == "lq-arrival-\(idUUID)"
-                }
-                .map { $0.identifier }
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
-        }
+        let id = routineId.uuidString
+        let identifiers = (0..<maxNotificationCount).map { "lq-routine-\(id)-\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
     }
 
-    /// Cancel all pending Life Quest notifications
+    /// Cancel all pending Life Quest notifications.
+    /// Uses removeAllPendingNotificationRequests — synchronous, safe to call before scheduling.
     func cancelAllLifeQuestNotifications() {
-        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
-            let identifiers = requests
-                .filter {
-                    $0.identifier.hasPrefix("lq-routine-") ||
-                    $0.identifier.hasPrefix("lq-arrival-")
-                }
-                .map { $0.identifier }
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
-        }
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
 
     /// Called when app becomes active or active routine changes.

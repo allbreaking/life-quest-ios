@@ -96,15 +96,18 @@ final class PhoneSessionManager: NSObject, WCSessionDelegate {
             let routineId = UUID(uuidString: idString),
             let completionStatus = message["completionStatus"] as? Bool,
             let subtaskData = message["completedSubtaskIndices"] as? Data,
-            let subtaskIndices = try? JSONDecoder().decode([Int].self, from: subtaskData),
-            let completionUpdatedAtInterval = message["completionUpdatedAt"] as? Double
+            let subtaskIndices = try? JSONDecoder().decode([Int].self, from: subtaskData)
         else { return }
+
+        // completionUpdatedAt may be absent in older message format — fall back to now
+        let interval = message["completionUpdatedAt"] as? Double ?? Date().timeIntervalSince1970
+        let completionUpdatedAt = Date(timeIntervalSince1970: interval)
 
         store?.applyCompletionUpdate(
             routineId: routineId,
             completionStatus: completionStatus,
             completedSubtaskIndices: subtaskIndices,
-            completionUpdatedAt: Date(timeIntervalSince1970: completionUpdatedAtInterval)
+            completionUpdatedAt: completionUpdatedAt
         )
     }
 }
