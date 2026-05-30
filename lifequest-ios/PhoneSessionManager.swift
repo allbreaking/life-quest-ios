@@ -78,8 +78,15 @@ final class PhoneSessionManager: NSObject, WCSessionDelegate {
     // MARK: - Message Handling
 
     private nonisolated func handleIncomingMessage(_ message: [String: Any]) {
-        guard let type = message["type"] as? String, type == "completion" else { return }
-        Task { @MainActor in self.handleCompletionUpdate(message) }
+        guard let type = message["type"] as? String else { return }
+        switch type {
+        case "completion":
+            Task { @MainActor in self.handleCompletionUpdate(message) }
+        case "requestSync":
+            Task { @MainActor in self.sendRoutinesToWatch() }
+        default:
+            break
+        }
     }
 
     @MainActor
@@ -90,15 +97,14 @@ final class PhoneSessionManager: NSObject, WCSessionDelegate {
             let completionStatus = message["completionStatus"] as? Bool,
             let subtaskData = message["completedSubtaskIndices"] as? Data,
             let subtaskIndices = try? JSONDecoder().decode([Int].self, from: subtaskData),
-            let updatedAtInterval = message["updatedAt"] as? Double
+            let completionUpdatedAtInterval = message["completionUpdatedAt"] as? Double
         else { return }
 
         store?.applyCompletionUpdate(
             routineId: routineId,
             completionStatus: completionStatus,
             completedSubtaskIndices: subtaskIndices,
-            updatedAt: Date(timeIntervalSince1970: updatedAtInterval)
+            completionUpdatedAt: Date(timeIntervalSince1970: completionUpdatedAtInterval)
         )
-        sendRoutinesToWatch()
     }
 }

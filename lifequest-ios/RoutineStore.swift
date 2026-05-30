@@ -52,6 +52,7 @@ final class RoutineStore {
         for i in routines.indices {
             routines[i].completionStatus = false
             routines[i].completedSubtaskIndices = []
+            routines[i].completionUpdatedAt = Date()
         }
         lastResetDate = today
         save()
@@ -109,6 +110,7 @@ final class RoutineStore {
         guard let idx = routines.firstIndex(where: { $0.id == routineId }) else { return }
         routines[idx].completionStatus = true
         routines[idx].updatedAt = Date()
+        routines[idx].completionUpdatedAt = Date()
         save()
     }
 
@@ -117,6 +119,7 @@ final class RoutineStore {
         routines[idx].completionStatus = false
         routines[idx].completedSubtaskIndices = []
         routines[idx].updatedAt = Date()
+        routines[idx].completionUpdatedAt = Date()
         save()
     }
 
@@ -125,6 +128,7 @@ final class RoutineStore {
         if !routines[idx].completedSubtaskIndices.contains(subtaskIndex) {
             routines[idx].completedSubtaskIndices.append(subtaskIndex)
             routines[idx].updatedAt = Date()
+            routines[idx].completionUpdatedAt = Date()
         }
         save()
     }
@@ -142,6 +146,7 @@ final class RoutineStore {
             }
         }
         routines[idx].updatedAt = Date()
+        routines[idx].completionUpdatedAt = Date()
         save()
     }
 
@@ -176,15 +181,14 @@ final class RoutineStore {
 
     // MARK: - Sync: Apply completion update from watch
 
-    func applyCompletionUpdate(routineId: UUID, completionStatus: Bool, completedSubtaskIndices: [Int], updatedAt: Date) {
+    func applyCompletionUpdate(routineId: UUID, completionStatus: Bool, completedSubtaskIndices: [Int], completionUpdatedAt: Date) {
         guard let idx = routines.firstIndex(where: { $0.id == routineId }) else { return }
-        // Last-write-wins
-        if updatedAt >= routines[idx].updatedAt {
+        if completionUpdatedAt >= routines[idx].completionUpdatedAt {
             routines[idx].completionStatus = completionStatus
             routines[idx].completedSubtaskIndices = completedSubtaskIndices
-            routines[idx].updatedAt = updatedAt
-            save()
+            routines[idx].completionUpdatedAt = completionUpdatedAt
         }
+        save()
     }
 
     // MARK: - Serialization helpers for sync
@@ -204,6 +208,7 @@ final class RoutineStore {
         for i in exportState.routines.indices {
             exportState.routines[i].completionStatus = false
             exportState.routines[i].completedSubtaskIndices = []
+            exportState.routines[i].completionUpdatedAt = Date(timeIntervalSince1970: 0)
         }
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -232,6 +237,7 @@ final class RoutineStore {
             var r = routine
             r.completionStatus = false
             r.completedSubtaskIndices = []
+            r.completionUpdatedAt = Date(timeIntervalSince1970: 0)
             routines.append(r)
             routinesAdded += 1
         }

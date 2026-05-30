@@ -37,6 +37,7 @@ struct RoutineListView: View {
     @State private var editingRoutine: Routine? = nil
     @State private var routineToDelete: Routine? = nil
     @State private var showingDeleteAlert = false
+    @State private var syncFeedback = false
 
     // Export / Import
     @State private var showingExporter = false
@@ -96,11 +97,24 @@ struct RoutineListView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        editingRoutine = nil
-                        showingEditor = true
-                    } label: {
-                        Image(systemName: "plus")
+                    HStack(spacing: 16) {
+                        Button {
+                            sessionManager.sendRoutinesToWatch()
+                            syncFeedback = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                syncFeedback = false
+                            }
+                        } label: {
+                            Image(systemName: syncFeedback ? "checkmark" : "arrow.triangle.2.circlepath")
+                                .foregroundStyle(syncFeedback ? .green : .primary)
+                                .animation(.default, value: syncFeedback)
+                        }
+                        Button {
+                            editingRoutine = nil
+                            showingEditor = true
+                        } label: {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }

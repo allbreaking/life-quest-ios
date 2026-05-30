@@ -31,7 +31,7 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
             "routineId": routine.id.uuidString,
             "completionStatus": routine.completionStatus,
             "completedSubtaskIndices": subtaskData,
-            "updatedAt": routine.updatedAt.timeIntervalSince1970
+            "completionUpdatedAt": routine.completionUpdatedAt.timeIntervalSince1970
         ]
 
         if WCSession.default.isReachable {
@@ -50,7 +50,24 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
     // MARK: - WCSessionDelegate
 
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        // Watch activated; phone will send fullSync automatically
+        guard activationState == .activated else { return }
+        // Request a full sync from phone on every activation (covers reinstall / data loss)
+        Task { @MainActor in self.requestSyncFromPhone() }
+    }
+
+    func requestSyncFromPhone() {
+        let message: [String: Any] = ["type": "requestSync"]
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: { [weak self] _ in
+                self?.transferRequestSync()
+            })
+        } else {
+            transferRequestSync()
+        }
+    }
+
+    private func transferRequestSync() {
+        WCSession.default.transferUserInfo(["type": "requestSync"])
     }
 
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {

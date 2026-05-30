@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		6C0927932FC5F4440072489B /* lifequest-ios Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 6C0927922FC5F4440072489B /* lifequest-ios Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6C543A942FCB0494002C2E5C /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C543A932FCB0494002C2E5C /* WidgetKit.framework */; };
+		6C543A962FCB0494002C2E5C /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C543A952FCB0494002C2E5C /* SwiftUI.framework */; };
+		6C543AA32FCB0495002C2E5C /* lifequest-ios Watch WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6C543A912FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -17,6 +20,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 6C0927912FC5F4440072489B;
 			remoteInfo = "lifequest-ios Watch App";
+		};
+		6C543AA12FCB0495002C2E5C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C09277D2FC5F4420072489B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C543A902FCB0494002C2E5C;
+			remoteInfo = "lifequest-ios Watch WidgetExtension";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -32,12 +42,44 @@
 			name = "Embed Watch Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6C543AA42FCB0495002C2E5C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				6C543AA32FCB0495002C2E5C /* lifequest-ios Watch WidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		6C0927852FC5F4420072489B /* lifequest-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lifequest-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C0927922FC5F4440072489B /* lifequest-ios Watch App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "lifequest-ios Watch App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C543A912FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "lifequest-ios Watch WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C543A932FCB0494002C2E5C /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		6C543A952FCB0494002C2E5C /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		6C543AAE2FCB05E0002C2E5C /* lifequest-ios Watch WidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "lifequest-ios Watch WidgetExtension.entitlements"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C543AA72FCB0495002C2E5C /* Exceptions for "lifequest-ios Watch Widget" folder in "lifequest-ios Watch WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6C543A902FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension */;
+		};
+		6C543AAC2FCB0560002C2E5C /* Exceptions for "lifequest-ios Watch App" folder in "lifequest-ios Watch WidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models.swift,
+			);
+			target = 6C543A902FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6C0927872FC5F4420072489B /* lifequest-ios */ = {
@@ -47,7 +89,18 @@
 		};
 		6C0927962FC5F4440072489B /* lifequest-ios Watch App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6C543AAC2FCB0560002C2E5C /* Exceptions for "lifequest-ios Watch App" folder in "lifequest-ios Watch WidgetExtension" target */,
+			);
 			path = "lifequest-ios Watch App";
+			sourceTree = "<group>";
+		};
+		6C543A972FCB0494002C2E5C /* lifequest-ios Watch Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6C543AA72FCB0495002C2E5C /* Exceptions for "lifequest-ios Watch Widget" folder in "lifequest-ios Watch WidgetExtension" target */,
+			);
+			path = "lifequest-ios Watch Widget";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -67,14 +120,26 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6C543A8E2FCB0494002C2E5C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6C543A962FCB0494002C2E5C /* SwiftUI.framework in Frameworks */,
+				6C543A942FCB0494002C2E5C /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		6C09277C2FC5F4420072489B = {
 			isa = PBXGroup;
 			children = (
+				6C543AAE2FCB05E0002C2E5C /* lifequest-ios Watch WidgetExtension.entitlements */,
 				6C0927872FC5F4420072489B /* lifequest-ios */,
 				6C0927962FC5F4440072489B /* lifequest-ios Watch App */,
+				6C543A972FCB0494002C2E5C /* lifequest-ios Watch Widget */,
+				6C543A922FCB0494002C2E5C /* Frameworks */,
 				6C0927862FC5F4420072489B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -84,8 +149,18 @@
 			children = (
 				6C0927852FC5F4420072489B /* lifequest-ios.app */,
 				6C0927922FC5F4440072489B /* lifequest-ios Watch App.app */,
+				6C543A912FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6C543A922FCB0494002C2E5C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6C543A932FCB0494002C2E5C /* WidgetKit.framework */,
+				6C543A952FCB0494002C2E5C /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -122,10 +197,12 @@
 				6C09278E2FC5F4440072489B /* Sources */,
 				6C09278F2FC5F4440072489B /* Frameworks */,
 				6C0927902FC5F4440072489B /* Resources */,
+				6C543AA42FCB0495002C2E5C /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				6C543AA22FCB0495002C2E5C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6C0927962FC5F4440072489B /* lifequest-ios Watch App */,
@@ -136,6 +213,28 @@
 			productName = "lifequest-ios Watch App";
 			productReference = 6C0927922FC5F4440072489B /* lifequest-ios Watch App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		6C543A902FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6C543AA82FCB0495002C2E5C /* Build configuration list for PBXNativeTarget "lifequest-ios Watch WidgetExtension" */;
+			buildPhases = (
+				6C543A8D2FCB0494002C2E5C /* Sources */,
+				6C543A8E2FCB0494002C2E5C /* Frameworks */,
+				6C543A8F2FCB0494002C2E5C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				6C543A972FCB0494002C2E5C /* lifequest-ios Watch Widget */,
+			);
+			name = "lifequest-ios Watch WidgetExtension";
+			packageProductDependencies = (
+			);
+			productName = "lifequest-ios Watch WidgetExtension";
+			productReference = 6C543A912FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -151,6 +250,9 @@
 						CreatedOnToolsVersion = 26.3;
 					};
 					6C0927912FC5F4440072489B = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					6C543A902FCB0494002C2E5C = {
 						CreatedOnToolsVersion = 26.3;
 					};
 				};
@@ -171,6 +273,7 @@
 			targets = (
 				6C0927842FC5F4420072489B /* lifequest-ios */,
 				6C0927912FC5F4440072489B /* lifequest-ios Watch App */,
+				6C543A902FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -184,6 +287,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		6C0927902FC5F4440072489B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6C543A8F2FCB0494002C2E5C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -207,6 +317,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6C543A8D2FCB0494002C2E5C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -214,6 +331,11 @@
 			isa = PBXTargetDependency;
 			target = 6C0927912FC5F4440072489B /* lifequest-ios Watch App */;
 			targetProxy = 6C0927942FC5F4440072489B /* PBXContainerItemProxy */;
+		};
+		6C543AA22FCB0495002C2E5C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C543A902FCB0494002C2E5C /* lifequest-ios Watch WidgetExtension */;
+			targetProxy = 6C543AA12FCB0495002C2E5C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -337,6 +459,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "lifequest-ios Watch App/lifequest-ios Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Z38G3RTZDD;
@@ -371,6 +494,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "lifequest-ios Watch App/lifequest-ios Watch App.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Z38G3RTZDD;
@@ -472,6 +596,75 @@
 			};
 			name = Release;
 		};
+		6C543AA52FCB0495002C2E5C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "lifequest-ios Watch WidgetExtension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z38G3RTZDD;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "lifequest-ios Watch Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "lifequest-ios Watch Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.xx.lifequest-ios.watchkitapp.lifequest-ios-Watch-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Debug;
+		};
+		6C543AA62FCB0495002C2E5C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = "lifequest-ios Watch WidgetExtension.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z38G3RTZDD;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "lifequest-ios Watch Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "lifequest-ios Watch Widget";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.xx.lifequest-ios.watchkitapp.lifequest-ios-Watch-Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 26.2;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -498,6 +691,15 @@
 			buildConfigurations = (
 				6C0927A42FC5F4450072489B /* Debug */,
 				6C0927A52FC5F4450072489B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6C543AA82FCB0495002C2E5C /* Build configuration list for PBXNativeTarget "lifequest-ios Watch WidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6C543AA52FCB0495002C2E5C /* Debug */,
+				6C543AA62FCB0495002C2E5C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

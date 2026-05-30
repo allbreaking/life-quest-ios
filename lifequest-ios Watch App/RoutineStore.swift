@@ -5,8 +5,16 @@
 //
 
 import Foundation
+import WidgetKit
 
+// App Group must be enabled in both the Watch App and Watch Widget targets in Xcode
+// (Signing & Capabilities → + App Groups → add this identifier)
+let kAppGroupId  = "group.com.lifequest.shared"
 private let kAppStateKey = "LQAppState"
+
+private var sharedDefaults: UserDefaults {
+    UserDefaults(suiteName: kAppGroupId) ?? .standard
+}
 
 @Observable
 final class RoutineStore {
@@ -24,12 +32,13 @@ final class RoutineStore {
     func save() {
         let state = AppState(routines: routines, locations: locations, lastResetDate: lastResetDate)
         if let data = try? JSONEncoder().encode(state) {
-            UserDefaults.standard.set(data, forKey: kAppStateKey)
+            sharedDefaults.set(data, forKey: kAppStateKey)
         }
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func load() {
-        guard let data = UserDefaults.standard.data(forKey: kAppStateKey),
+        guard let data = sharedDefaults.data(forKey: kAppStateKey),
               let state = try? JSONDecoder().decode(AppState.self, from: data) else {
             return
         }
@@ -52,6 +61,7 @@ final class RoutineStore {
         for i in routines.indices {
             routines[i].completionStatus = false
             routines[i].completedSubtaskIndices = []
+            routines[i].completionUpdatedAt = Date()
         }
         lastResetDate = today
         save()
@@ -63,6 +73,7 @@ final class RoutineStore {
         guard let idx = routines.firstIndex(where: { $0.id == routineId }) else { return }
         routines[idx].completionStatus = true
         routines[idx].updatedAt = Date()
+        routines[idx].completionUpdatedAt = Date()
         save()
     }
 
@@ -71,6 +82,7 @@ final class RoutineStore {
         if !routines[idx].completedSubtaskIndices.contains(subtaskIndex) {
             routines[idx].completedSubtaskIndices.append(subtaskIndex)
             routines[idx].updatedAt = Date()
+            routines[idx].completionUpdatedAt = Date()
         }
         save()
     }
@@ -88,6 +100,7 @@ final class RoutineStore {
             }
         }
         routines[idx].updatedAt = Date()
+        routines[idx].completionUpdatedAt = Date()
         save()
     }
 
@@ -109,16 +122,19 @@ final class RoutineStore {
     // MARK: - Sync: Apply full sync from phone
 
     func applyFullSync(routines newRoutines: [Routine], locations newLocations: [RoutineLocation]) {
-        // Merge by updatedAt (last-write-wins per routine)
-        var merged: [Routine] = newRoutines
-        for local in routines {
-            if let remoteIdx = merged.firstIndex(where: { $0.id == local.id }) {
-                if local.updatedAt > merged[remoteIdx].updatedAt {
-                    merged[remoteIdx] = local
-                }
+        routines = newRoutines.map { phoneRoutine in
+            guard let local = routines.first(where: { $0.id == phoneRoutine.id }) else {
+                return phoneRoutine  // new routine from phone, take as-is
             }
+            var result = phoneRoutine  // always use phone's definition fields
+            // Only keep local completion status if it's newer
+            if local.completionUpdatedAt > phoneRoutine.completionUpdatedAt {
+                result.completionStatus = local.completionStatus
+                result.completedSubtaskIndices = local.completedSubtaskIndices
+                result.completionUpdatedAt = local.completionUpdatedAt
+            }
+            return result
         }
-        routines = merged
         locations = newLocations
         save()
     }

@@ -55,6 +55,8 @@ struct Routine: Codable, Identifiable, Equatable {
     var createdAt: Date
     var updatedAt: Date
     var reminderIntervalMinutes: Int
+    /// Tracks when completion status last changed; used for bidirectional last-write-wins sync.
+    var completionUpdatedAt: Date
 
     init(
         id: UUID = UUID(),
@@ -70,7 +72,8 @@ struct Routine: Codable, Identifiable, Equatable {
         completedSubtaskIndices: [Int] = [],
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
-        reminderIntervalMinutes: Int = 5
+        reminderIntervalMinutes: Int = 5,
+        completionUpdatedAt: Date = Date(timeIntervalSince1970: 0)
     ) {
         self.id = id
         self.name = name
@@ -86,6 +89,26 @@ struct Routine: Codable, Identifiable, Equatable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.reminderIntervalMinutes = reminderIntervalMinutes
+        self.completionUpdatedAt = completionUpdatedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        subtasks = try c.decode([String].self, forKey: .subtasks)
+        scheduledHour = try c.decodeIfPresent(Int.self, forKey: .scheduledHour)
+        scheduledMinute = try c.decodeIfPresent(Int.self, forKey: .scheduledMinute)
+        locationId = try c.decodeIfPresent(UUID.self, forKey: .locationId)
+        recurrence = try c.decode(RecurrenceType.self, forKey: .recurrence)
+        selectedDays = try c.decode([Int].self, forKey: .selectedDays)
+        selectedDates = try c.decode([Int].self, forKey: .selectedDates)
+        completionStatus = try c.decode(Bool.self, forKey: .completionStatus)
+        completedSubtaskIndices = try c.decode([Int].self, forKey: .completedSubtaskIndices)
+        createdAt = try c.decode(Date.self, forKey: .createdAt)
+        updatedAt = try c.decode(Date.self, forKey: .updatedAt)
+        reminderIntervalMinutes = try c.decode(Int.self, forKey: .reminderIntervalMinutes)
+        completionUpdatedAt = (try? c.decode(Date.self, forKey: .completionUpdatedAt)) ?? Date(timeIntervalSince1970: 0)
     }
 
     // MARK: - Computed Properties
