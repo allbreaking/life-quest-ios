@@ -106,9 +106,6 @@ struct ActiveTaskView: View {
                             .multilineTextAlignment(.center)
                     } else if let nextIdx = routine.nextSubtaskIndex {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Next:")
-                                .font(.caption2)
-                                .foregroundStyle(Color.driftwood)
                             Text(routine.subtasks[nextIdx])
                                 .font(.subheadline)
                                 .fontWeight(.medium)
