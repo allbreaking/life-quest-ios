@@ -120,5 +120,8 @@ final class WatchSessionManager: NSObject, WCSessionDelegate {
 
         store?.applyFullSync(routines: newRoutines, locations: newLocations)
         onSyncReceived?()
+        if let store = store {
+            pushTodaysCompletionToPhone(store: store)
+        }
     }
 }
