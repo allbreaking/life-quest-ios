@@ -109,6 +109,7 @@ final class RoutineStore {
     func markComplete(routineId: UUID) {
         guard let idx = routines.firstIndex(where: { $0.id == routineId }) else { return }
         routines[idx].completionStatus = true
+        routines[idx].lastCompletedDate = Calendar.current.startOfDay(for: Date())
         routines[idx].updatedAt = Date()
         routines[idx].completionUpdatedAt = Date()
         save()
@@ -118,6 +119,7 @@ final class RoutineStore {
         guard let idx = routines.firstIndex(where: { $0.id == routineId }) else { return }
         routines[idx].completionStatus = false
         routines[idx].completedSubtaskIndices = []
+        routines[idx].lastCompletedDate = nil
         routines[idx].updatedAt = Date()
         routines[idx].completionUpdatedAt = Date()
         save()
@@ -143,6 +145,7 @@ final class RoutineStore {
             routines[idx].completedSubtaskIndices.append(subtaskIndex)
             if routines[idx].allSubtasksCompleted {
                 routines[idx].completionStatus = true
+                routines[idx].lastCompletedDate = Calendar.current.startOfDay(for: Date())
             }
         }
         routines[idx].updatedAt = Date()
