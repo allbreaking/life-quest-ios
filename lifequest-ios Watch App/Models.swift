@@ -57,6 +57,9 @@ struct Routine: Codable, Identifiable, Equatable {
     var reminderIntervalMinutes: Int
     /// Tracks when completion status last changed; used for bidirectional last-write-wins sync.
     var completionUpdatedAt: Date
+    /// The date the user actually completed this routine (start of day). Not cleared by daily reset.
+    /// Used by isDueToday() to carry forward incomplete weekly/biweekly/monthly tasks.
+    var lastCompletedDate: Date?
 
     init(
         id: UUID = UUID(),
@@ -73,7 +76,8 @@ struct Routine: Codable, Identifiable, Equatable {
         createdAt: Date = Date(),
         updatedAt: Date = Date(),
         reminderIntervalMinutes: Int = 5,
-        completionUpdatedAt: Date = Date(timeIntervalSince1970: 0)
+        completionUpdatedAt: Date = Date(timeIntervalSince1970: 0),
+        lastCompletedDate: Date? = nil
     ) {
         self.id = id
         self.name = name
@@ -90,6 +94,7 @@ struct Routine: Codable, Identifiable, Equatable {
         self.updatedAt = updatedAt
         self.reminderIntervalMinutes = reminderIntervalMinutes
         self.completionUpdatedAt = completionUpdatedAt
+        self.lastCompletedDate = lastCompletedDate
     }
 
     init(from decoder: Decoder) throws {
@@ -109,6 +114,7 @@ struct Routine: Codable, Identifiable, Equatable {
         updatedAt = try c.decode(Date.self, forKey: .updatedAt)
         reminderIntervalMinutes = try c.decode(Int.self, forKey: .reminderIntervalMinutes)
         completionUpdatedAt = (try? c.decode(Date.self, forKey: .completionUpdatedAt)) ?? Date(timeIntervalSince1970: 0)
+        lastCompletedDate = try? c.decodeIfPresent(Date.self, forKey: .lastCompletedDate)
     }
 
     // MARK: - Computed Properties
@@ -151,27 +157,50 @@ struct Routine: Codable, Identifiable, Equatable {
     func isDueToday() -> Bool {
         let cal = Calendar.current
         let today = Date()
-        let weekday = cal.component(.weekday, from: today) // 1=Sun..7=Sat
-        let dayOfMonth = cal.component(.day, from: today)
+        let todayStart = cal.startOfDay(for: today)
+        let lastDone = lastCompletedDate ?? Date(timeIntervalSince1970: 0)
 
         switch recurrence {
         case .daily:
             return true
 
         case .weekly:
-            if selectedDays.isEmpty { return true }
-            return selectedDays.contains(weekday)
+            let days = selectedDays.isEmpty ? [1, 2, 3, 4, 5, 6, 7] : selectedDays
+            for offset in 0...6 {
+                guard let checkDate = cal.date(byAdding: .day, value: -offset, to: todayStart) else { continue }
+                let checkWeekday = cal.component(.weekday, from: checkDate)
+                if days.contains(checkWeekday) {
+                    return cal.startOfDay(for: lastDone) < checkDate
+                }
+            }
+            return false
 
         case .biweekly:
-            if !selectedDays.isEmpty && !selectedDays.contains(weekday) { return false }
+            let days = selectedDays.isEmpty ? [1, 2, 3, 4, 5, 6, 7] : selectedDays
             let creationWeekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: createdAt))!
-            let currentWeekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: today))!
-            let weeks = cal.dateComponents([.weekOfYear], from: creationWeekStart, to: currentWeekStart).weekOfYear ?? 0
-            return weeks % 2 == 0
+            for offset in 0...13 {
+                guard let checkDate = cal.date(byAdding: .day, value: -offset, to: todayStart) else { continue }
+                let checkWeekday = cal.component(.weekday, from: checkDate)
+                if days.contains(checkWeekday) {
+                    let checkWeekStart = cal.date(from: cal.dateComponents([.yearForWeekOfYear, .weekOfYear], from: checkDate))!
+                    let weeks = cal.dateComponents([.weekOfYear], from: creationWeekStart, to: checkWeekStart).weekOfYear ?? 0
+                    if weeks % 2 == 0 {
+                        return cal.startOfDay(for: lastDone) < checkDate
+                    }
+                }
+            }
+            return false
 
         case .monthly:
-            if selectedDates.isEmpty { return true }
-            return selectedDates.contains(dayOfMonth)
+            let dates = selectedDates.isEmpty ? Array(1...31) : selectedDates
+            for offset in 0...30 {
+                guard let checkDate = cal.date(byAdding: .day, value: -offset, to: todayStart) else { continue }
+                let checkDayOfMonth = cal.component(.day, from: checkDate)
+                if dates.contains(checkDayOfMonth) {
+                    return cal.startOfDay(for: lastDone) < checkDate
+                }
+            }
+            return false
         }
     }
 }
